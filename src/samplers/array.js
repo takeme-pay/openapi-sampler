@@ -1,4 +1,5 @@
 import { traverse } from '../traverse';
+import {wrapXmlArray} from '../utils.js';
 export function sampleArray(schema, options = {}, spec, context) {
   const depth = (context && context.depth || 1);
 
@@ -24,5 +25,10 @@ export function sampleArray(schema, options = {}, spec, context) {
     let { value: sample } = traverse(itemSchema, options, spec, {depth: depth + 1});
     res.push(sample);
   }
+
+  if (options.format === 'xml') {
+    return wrapXmlArray(schema, context, res);
+  }
+
   return res;
 }

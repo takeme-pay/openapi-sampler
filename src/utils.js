@@ -71,6 +71,32 @@ export function popSchemaStack(seenSchemasStack, context) {
   if (context) seenSchemasStack.pop();
 }
 
+export function wrapXmlArray(schema, context, value) {
+    let elementName = null;
+    let itemName = null;
+    let wrapped = false;
+    if (schema.xml) {
+      if (schema.xml.name) {
+        elementName = schema.xml.name;
+      }
+      wrapped = schema.xml.wrapped;
+    }
+    if (schema.items && schema.items.xml) {
+      itemName = schema.items.xml.name;
+    }
+    if (!elementName && context) {
+      elementName = context.propertyName;
+    }
+    if (elementName) {
+      if (wrapped) {
+        return {[elementName]: {[itemName]: value}};
+      }
+      return {[itemName]: value};
+    } else {
+      return value;
+    }
+}
+
 function hashCode(str) {
   var hash = 0;
   if (str.length == 0) return hash;

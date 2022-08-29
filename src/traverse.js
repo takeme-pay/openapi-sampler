@@ -1,7 +1,7 @@
 import { _samplers } from './openapi-sampler';
 import { allOfSample } from './allOf';
 import { inferType } from './infer';
-import { getResultForCircular, mergeDeep, popSchemaStack } from './utils';
+import {getResultForCircular, mergeDeep, popSchemaStack, wrapXmlArray} from './utils';
 import JsonPointer from 'json-pointer';
 
 let $refCache = {};
@@ -81,8 +81,14 @@ export function traverse(schema, options, spec, context) {
 
   if (schema.example !== undefined) {
     popSchemaStack(seenSchemasStack, context);
+    let example = schema.example;
+    if (options.format === 'xml') {
+      if (schema.type === 'array') {
+        example = wrapXmlArray(schema, context, example);
+      }
+    }
     return {
-      value: schema.example,
+      value: example,
       readOnly: schema.readOnly,
       writeOnly: schema.writeOnly,
       type: schema.type,

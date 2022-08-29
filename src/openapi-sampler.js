@@ -1,5 +1,6 @@
 import { traverse, clearCache } from './traverse';
 import { sampleArray, sampleBoolean, sampleNumber, sampleObject, sampleString } from './samplers/index';
+import {toXML} from 'to-xml';
 
 export var _samplers = {};
 
@@ -8,10 +9,14 @@ const defaults = {
   maxSampleDepth: 15,
 };
 
-export function sample(schema, options, spec) {
+export function sample(schema, options, spec, context) {
   let opts = Object.assign({}, defaults, options);
   clearCache();
-  return traverse(schema, opts, spec).value;
+  const value = traverse(schema, opts, spec, context).value;
+  if (options.format === 'xml') {
+    return toXML(value, null, 2);
+  }
+  return value;
 };
 
 export function _registerSampler(type, sampler) {

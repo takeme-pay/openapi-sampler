@@ -16,13 +16,23 @@ export function sampleObject(schema, options = {}, spec, context) {
         return;
       }
 
-      const sample = traverse(schema.properties[propertyName], options, spec, { propertyName, depth: depth + 1 });
+      let propertySchema = schema.properties[propertyName];
+      const sample = traverse(propertySchema, options, spec, { propertyName, depth: depth + 1 });
       if (options.skipReadOnly && sample.readOnly) {
         return;
       }
 
       if (options.skipWriteOnly && sample.writeOnly) {
         return;
+      }
+
+      if (options.format === 'xml' && propertySchema.xml) {
+        if (propertySchema.xml.name) {
+          propertyName = propertySchema.xml.name;
+        }
+        if (propertySchema.xml.attribute) {
+          propertyName = `@${propertyName}`;
+        }
       }
       res[propertyName] = sample.value;
     });
@@ -33,5 +43,18 @@ export function sampleObject(schema, options = {}, spec, context) {
     res[`${String(propertyName)}1`] = traverse(schema.additionalProperties, options, spec, {depth: depth + 1 }).value;
     res[`${String(propertyName)}2`] = traverse(schema.additionalProperties, options, spec, {depth: depth + 1 }).value;
   }
+
+  if (options.format === 'xml') {
+    let elementName = null;
+    if (schema.xml && schema.xml.name) {
+      elementName = schema.xml.name;
+    } else if (context) {
+      elementName = context.propertyName;
+    }
+    if (elementName) {
+      return {[elementName]: res};
+    }
+  }
+
   return res;
 }
